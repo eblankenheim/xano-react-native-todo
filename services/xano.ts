@@ -56,37 +56,126 @@ addResponseInterceptor(todosAPI);
 export const authService = {
   login: async (email: string, password: string) => {
     try {
-      const response = await authAPI.post("/auth/login", {
+      console.log("🔐 Attempting login with:", {
+        email,
+        endpoint: "/auth/login",
+      });
+
+      // Step 1: Login to get authToken
+      const loginResponse = await authAPI.post("/auth/login", {
         email,
         password,
       });
-      return response.data;
-    } catch (error) {
-      console.error("Login API error:", error);
+      console.log(
+        "✅ Login response:",
+        JSON.stringify(loginResponse.data, null, 2)
+      );
+
+      const authToken = loginResponse.data.authToken;
+      if (!authToken) {
+        throw new Error("No authToken received from login");
+      }
+
+      // Step 2: Get user data using the token
+      console.log("👤 Fetching user data with token...");
+      const userResponse = await authAPI.get("/auth/me", {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      console.log(
+        "✅ User data response:",
+        JSON.stringify(userResponse.data, null, 2)
+      );
+
+      // Return combined response
+      return {
+        authToken,
+        user: {
+          id: userResponse.data.id,
+          email: userResponse.data.email,
+          name: userResponse.data.name || userResponse.data.email, // Fallback if no name
+        },
+      };
+    } catch (error: any) {
+      console.error("❌ Login API error:", error);
+      console.error("📄 Error response:", error.response?.data);
+      console.error("🔢 Error status:", error.response?.status);
+      console.error("📬 Error message:", error.message);
       throw error;
     }
   },
 
   register: async (name: string, email: string, password: string) => {
     try {
-      const response = await authAPI.post("/auth/signup", {
+      console.log("📝 Attempting register with:", {
+        name,
+        email,
+        endpoint: "/auth/signup",
+      });
+
+      // Step 1: Register to get authToken
+      const registerResponse = await authAPI.post("/auth/signup", {
         name,
         email,
         password,
       });
-      return response.data;
-    } catch (error) {
-      console.error("Register API error:", error);
+      console.log(
+        "✅ Register response:",
+        JSON.stringify(registerResponse.data, null, 2)
+      );
+
+      const authToken = registerResponse.data.authToken;
+      if (!authToken) {
+        throw new Error("No authToken received from register");
+      }
+
+      // Step 2: Get user data using the token
+      console.log("👤 Fetching user data after registration...");
+      const userResponse = await authAPI.get("/auth/me", {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      console.log(
+        "✅ User data response:",
+        JSON.stringify(userResponse.data, null, 2)
+      );
+
+      // Return combined response
+      return {
+        authToken,
+        user: {
+          id: userResponse.data.id,
+          email: userResponse.data.email,
+          name: userResponse.data.name || name || userResponse.data.email, // Use provided name or fallback
+        },
+      };
+    } catch (error: any) {
+      console.error("❌ Register API error:", error);
+      console.error("📄 Error response:", error.response?.data);
+      console.error("🔢 Error status:", error.response?.status);
       throw error;
     }
   },
 
   getProfile: async () => {
     try {
+      console.log("👤 Fetching user profile...");
       const response = await authAPI.get("/auth/me");
-      return response.data;
-    } catch (error) {
-      console.error("Get profile API error:", error);
+      console.log(
+        "✅ Profile response:",
+        JSON.stringify(response.data, null, 2)
+      );
+      return {
+        id: response.data.id,
+        email: response.data.email,
+        name: response.data.name || response.data.email, // Fallback if no name
+      };
+    } catch (error: any) {
+      console.error("❌ Get profile API error:", error);
+      console.error("📄 Error response:", error.response?.data);
+      console.error("🔢 Error status:", error.response?.status);
       throw error;
     }
   },

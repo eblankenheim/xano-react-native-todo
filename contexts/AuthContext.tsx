@@ -69,16 +69,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
+      console.log("🔑 AuthContext: Starting login process");
       const response = await authService.login(email, password);
+      console.log(
+        "📦 AuthContext: Received response:",
+        JSON.stringify(response, null, 2)
+      );
 
       if (response.authToken && response.user) {
+        console.log("✅ Login successful, storing auth data");
         await setAuthData(response.user, response.authToken);
         return true;
       }
 
+      console.log("❌ Invalid response structure");
       return false;
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("❌ Login error:", error);
       return false;
     }
   };
@@ -89,16 +96,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     password: string
   ): Promise<boolean> => {
     try {
+      console.log("📝 AuthContext: Starting register process");
       const response = await authService.register(name, email, password);
+      console.log(
+        "📦 AuthContext: Received register response:",
+        JSON.stringify(response, null, 2)
+      );
 
       if (response.authToken && response.user) {
+        console.log("✅ Registration successful, storing auth data");
         await setAuthData(response.user, response.authToken);
         return true;
       }
 
+      console.log("❌ Invalid response structure");
       return false;
     } catch (error) {
-      console.error("Register error:", error);
+      console.error("❌ Register error:", error);
       return false;
     }
   };
